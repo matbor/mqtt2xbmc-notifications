@@ -13,9 +13,9 @@
 # - need to change to a addon with config settings, currently just using the autoexec.py and modifying settings below
 # - deal with the odd ascii characters, typical only has issues on the internal xbmc notification system
 # - handle the exiting of XBMC, by killing this script nicely... will this effect will_set >? atm xbmc forces a kill
-# - 
+# - add back in playback status, play/stop/pause/resume/now playing
 
-import mosquitto #you need to have this file
+import mosquitto #you need to have this file http://mosquitto.org
 import xbmc
 import json
 import xbmcgui
