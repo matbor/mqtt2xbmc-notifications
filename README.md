@@ -57,3 +57,4 @@ JSON string sent to topic;
 - handle the exiting of XBMC, by killing this script nicely... will this effect will_set >? atm xbmc forces a kill
 - add back in reporting of playback status, play/stop/pause/resume/now playing
 - fix so it works with latest version of mosquitto.py
+- remove all the lazy print statements and use the xbmc logging system
