@@ -21,6 +21,7 @@ Typical format of the MQTT message that needs to be sent to topic.
 ##Notes;
 - Using autoexec.py as I haven't got around to making it a plugin yet... it's on the todo list!
 - to get the latest version of mosquitto.py please visit http://mosquitto.org <- doubt latest version will work
+- I have found that the latest version of mosquitto.py that will work is this one, https://bitbucket.org/oojah/mosquitto/src/698853a74c8e/lib/python/mosquitto.py
 - have tested on ATV2 with XBMC frodo 12.2 and Windows7 with XBMC frodo 12.2 succesfully.
 
 ##Example:
