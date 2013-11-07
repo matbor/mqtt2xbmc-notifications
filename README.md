@@ -14,8 +14,9 @@ Typical format of the MQTT message that needs to be sent to topic.
     delay -- show message for this long, in miliseconds
 
 ##Installation;
-- copy autoexec.py & mosquitto.py to XBMC userdate folder.
-- copy background.png and mqtt.png to a folder
+- download https://bitbucket.org/oojah/mosquitto/src/698853a74c8e/lib/python/mosquitto.py
+- copy autoexec.py & mosquitto.py to XBMC userdata folder.
+- copy background.png and mqtt.png to a folder, I normally use the Thumbnails one.
 - edit autoexec.py and change the broker and topic settings.
 
 ##Notes;
