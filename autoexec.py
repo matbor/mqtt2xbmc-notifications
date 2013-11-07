@@ -13,7 +13,7 @@
 # - need to change to a addon with config settings, currently just using the autoexec.py and modifying settings below
 # - deal with the odd ascii characters, typical only has issues on the internal xbmc notification system
 # - handle the exiting of XBMC, by killing this script nicely... will this effect will_set >? atm xbmc forces a kill
-# - make into a proper XBMC plugin
+# - make into a proper XBMC plugin, http://wiki.xbmc.org/index.php?title=How-to:Automatically_start_addons_using_services
 # - publish to topic with status of playing/stopped/paused/resumed
 
 import mosquitto #https://bitbucket.org/oojah/mosquitto/src/698853a74c8e/lib/python/mosquitto.py
