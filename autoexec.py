@@ -6,21 +6,26 @@
 # by Matthew Bordignon @bordignon
 #
 #  Format mqtt message using json 
-#       {"lvl":"1","sub":"xxxxxx","txt":"xxxxxx","img":"xxx","del":"10000"}
-#       {"lvl":"level either 1 or 2","sub":"subject text","txt":"main text 150 characters max","img":"icon location","del":"display msg this long"}
+#       {"lvl":"1","sub":"xxxxxx","txt":"xxxxxx","img":"xxx","delay":"10000"}
+#       {"lvl":"level either 1 or 2","sub":"subject text","txt":"main text 150 characters max","img":"icon location","delay":"display msg this long"}
 #
 # todo;
 # - need to change to a addon with config settings, currently just using the autoexec.py and modifying settings below
 # - deal with the odd ascii characters, typical only has issues on the internal xbmc notification system
 # - handle the exiting of XBMC, by killing this script nicely... will this effect will_set >? atm xbmc forces a kill
-# - add back in playback status, play/stop/pause/resume/now playing
+# - make into a proper XBMC plugin
+# - publish to topic with status of playing/stopped/paused/resumed
 
-import mosquitto #you need to have this file http://mosquitto.org
+import mosquitto #https://bitbucket.org/oojah/mosquitto/src/698853a74c8e/lib/python/mosquitto.py
 import xbmc
-import json
 import xbmcgui
+import json
 import datetime
 import socket
+import sys
+import signal
+import time
+
 
 xbmc_name = socket.gethostname() #using the hostname for the mqtt will_set
 
@@ -30,7 +35,7 @@ broker_port = 1883 #mqtt broker port
 
 topic_xbmcmsgs = "/house/xbmc/all/messages" 
 topic_xbmcstatus = "/house/xbmc/"+xbmc_name+"/status" #the topic location for the mqtt online/offline last will and testament (will_set), using the xbmc hostname as well here
-
+willtopic = "/house/xbmc/"+xbmc_name+"/status"
 background = 'special://masterprofile/Thumbnails/background.png' #location of the background image for the popup box
 mqtt_logo = 'special://masterprofile/Thumbnails/mqtt.png'
 #settings END
@@ -39,7 +44,7 @@ print('XBMC MQTT -- Subscriber and custom popup starting on: ' + xbmc_name)
 
 now = datetime.datetime.now()
 
-
+mqttc = mosquitto.Mosquitto()
 
 class PopupWindow(xbmcgui.WindowDialog):
     def __init__(self, image, subject, text):
@@ -60,11 +65,21 @@ class PopupWindow(xbmcgui.WindowDialog):
         self.addControl(xbmcgui.ControlLabel(x=190, y=125, width=900, height=25, label=line5text))
         self.addControl(xbmcgui.ControlLabel(x=190, y=150, width=900, height=25, label=line6text))
 
+def cleanup(signum, frame):
+    try:
+        mqtt.publish(willtopic, "offline", retain=True)
+        print("Disconnecting from broker")
+        mqttc.disconnect()
+    except:
+        print("no broker?")
+    print("Exiting on signal %d", signum)
+    sys.exit(signum)        
+        
 def on_connect(mosq, obj, rc):
     print("XBMC MQTT -- rc: "+str(rc))
-    xbmc.executebuiltin('Notification(MQTT Connected,waiting for message,5000,'+mqtt_logo+')\'')
+    xbmc.executebuiltin('Notification(MQTT Connected,waiting for message,10000,'+mqtt_logo+')\'')
     mqttc.publish(topic_xbmcstatus, payload="online", qos=0, retain=True)
-    
+    mqttc.subscribe(topic_xbmcmsgs, 0)
 
 def on_message(mosq, obj, msg):
     print('XBMC MQTT -- message receieved')
@@ -78,12 +93,12 @@ def on_message(mosq, obj, msg):
             print("XBMC MQTT -- level 1 priority message")
             window = PopupWindow(list['img'],list['sub'],list['txt'])
             window.show()
-            xbmc.sleep(int(list['del'])) #how long to show the window for
+            xbmc.sleep(int(list['delay'])) #how long to show the window for
             window.close()
         #if level-2 msg, use xbmc builtin notification
         if list['lvl'] == "2":
             print("XBMC MQTT -- level 2 priority message")
-            xbmc.executebuiltin('Notification('+list['sub']+','+list['txt']+','+list['del']+','+list['img']+')\'')
+            xbmc.executebuiltin('Notification('+list['sub']+','+list['txt']+','+list['delay']+','+list['img']+')\'')
             
     except: #deal with the errors
         print('XBMC MQTT -- error, not sure why, sometimes it is because it might not valid JSON string revieved!')
@@ -98,23 +113,37 @@ def on_subscribe(mosq, obj, mid, granted_qos):
 def on_log(mosq, obj, level, string):
     print("XBMC MQTT -- " + string)
 
-# If you want to use a specific client id, use
-# mqttc = mosquitto.Mosquitto("client-id")
-# but note that the client id must be unique on the broker. Leaving the client
-# id parameter empty will generate a random id for you.
-mqttc = mosquitto.Mosquitto()
-mqttc.on_message = on_message
-mqttc.on_connect = on_connect
-mqttc.on_publish = on_publish
-mqttc.on_subscribe = on_subscribe
-mqttc.will_set(topic_xbmcstatus, payload="offline", qos=0, retain=True)
-# Uncomment to enable debug messages
-#mqttc.on_log = on_log
-mqttc.connect(broker, broker_port, 60)
-mqttc.subscribe(topic_xbmcmsgs, 0)
+def main():
+    """
+    The main loop in which we stay connected to the broker
+    """
+    #define the callbacks
+    mqttc.on_message = on_message
+    mqttc.on_connect = on_connect
+    mqttc.on_publish = on_publish
+    mqttc.on_subscribe = on_subscribe
+    
+    mqttc.will_set(willtopic, payload="offline", qos=0, retain=True)
+    mqttc.reconnect_delay_set(delay=3, delay_max=30, exponential_backoff=True)
+    
+    try:
+        mqttc.connect("mqtt.localdomain", 1883, 60)
+    except Exception, e:
+        print("XBMC MQTT -- MQTT connection failed: %s" % (str(e)))
+        sys.exit(1)
+    
+    while True:
+            try:
+                mqttc.loop_forever()
+            except socket.error:
+                print("XBMC MQTT --MQTT server disconnected; sleeping")
+                time.sleep(5)
+                xbmc.executebuiltin('Notification(Error, mqtt disconnected pls chk,5000,'+mqtt_logo+')\'')    
+            except:
+                raise
 
-rc = 0
-while rc == 0:
-    rc = mqttc.loop()
+    
+if __name__ == '__main__':
+    
+    main()
 
-print("XBMC MQTT -- rc: "+str(rc))
