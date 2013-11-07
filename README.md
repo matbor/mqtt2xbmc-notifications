@@ -5,13 +5,13 @@ Subscribes to a MQTT topic and will display the messages on XBMC using custom po
 
 Typical format of the MQTT message that needs to be sent to topic.
 
-    {"lvl":"1","sub":"xxxxxx","txt":"xxxxxx","img":"xxx","del":"10000"}
+    {"lvl":"1","sub":"xxxxxx","txt":"xxxxxx","img":"xxx","delay":"10000"}
 
     lvl -- Message level; a  "1"  uses the custom larger popup, a "2"  uses the xbmc built in notification. (see screenshots below)
     sub -- subject of message
     txt -- main body of text, needs to be less than 150 characters for the custom larger popup
     img -- ?? pixels, transparent background, location and name, eg. special://masterprofile/Thumbnails/xxx_1.png
-    del -- show message for this long, in miliseconds
+    delay -- show message for this long, in miliseconds
 
 ##Installation;
 - copy autoexec.py & mosquitto.py to XBMC userdate folder.
@@ -37,7 +37,7 @@ Custom pop-up
 
 JSON string sent to topic;
 
-    {"lvl":"1","sub":"@CFA_Updates","txt":"Visiting NSW's tomorrow? Monitor fire conditions. Follow @nswrfs and remember many parks & reserves closed http://www.environment.nsw.gov.au/NationalParks/FireClosure.aspx #nswfires","img":"special://masterprofile/Thumbnails/cfa.png","del":"20000"}
+    {"lvl":"1","sub":"@CFA_Updates","txt":"Visiting NSW's tomorrow? Monitor fire conditions. Follow @nswrfs and remember many parks & reserves closed http://www.environment.nsw.gov.au/NationalParks/FireClosure.aspx #nswfires","img":"special://masterprofile/Thumbnails/cfa.png","delay":"20000"}
 
 ![level1msg](https://raw.github.com/matbor/XBMC-MQTT-notification-system/master/screenshots/level1msg.png)
 
@@ -47,7 +47,7 @@ Using bulit-in XBMC notification system
 
 JSON string sent to topic;
 
-    {"lvl":"2","sub":"@CFA_Updates","txt":"Visiting NSW's tomorrow? Monitor fire conditions. Follow @nswrfs and remember many parks & reserves closed http://www.environment.nsw.gov.au/NationalParks/FireClosure.aspx #nswfires","img":"special://masterprofile/Thumbnails/cfa.png","del":"20000"}
+    {"lvl":"2","sub":"@CFA_Updates","txt":"Visiting NSW's tomorrow? Monitor fire conditions. Follow @nswrfs and remember many parks & reserves closed http://www.environment.nsw.gov.au/NationalParks/FireClosure.aspx #nswfires","img":"special://masterprofile/Thumbnails/cfa.png","delay":"20000"}
 
 
 ![level2msg](https://raw.github.com/matbor/XBMC-MQTT-notification-system/master/screenshots/level2msg.png)
